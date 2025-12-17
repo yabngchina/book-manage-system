@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yabng.mapper.ReaderMapper">
+    <select id="getById" resultType="com.yabng.domain.pojo.Reader">
+        select * from reader where id = #{id}
+    </select>
+
+    <update id="updatePwdById">
+        update reader set password = #{password} where id = #{id}
+    </update>
+
+    <select id="query" resultType="com.yabng.domain.pojo.Reader">
+        select * from reader
+        <where>
+            <choose>
+                <when test="id != null">
+                    id = #{id}
+                </when>
+                 <otherwise>
+                     <if test="readerTypeId != null">reader_type_id = #{readerTypeId}</if>
+                     <if test="department != null and department != ''">and department like concat('%', #{department}, '%')</if>
+                     <if test="name != null">and name like concat('%', #{name}, '%')</if>
+                 </otherwise>
+            </choose>
+        </where>
+    </select>
+    <select id="listByIds" resultType="com.yabng.domain.pojo.Reader">
+        select * from reader where id in
+        <foreach item="id" collection="ids" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        insert into reader(name, sex, reader_type_id, department, photo, status, admin_roles, is_available)
+        values(#{name}, #{sex}, #{readerTypeId}, #{department}, #{photo}, #{status}, #{adminRoles}, #{isAvailable})
+    </insert>
+
+    <insert id="saveBatch">
+        insert into reader(name, sex, reader_type_id, department, photo, status, admin_roles, is_available)
+        values
+            <foreach collection="readerList" separator=",">
+                (#{name}, #{sex}, #{readerTypeId}, #{department}, #{photo}, #{status}, #{adminRoles}, #{isAvailable})
+            </foreach>
+    </insert>
+
+    <update id="updateById">
+        update reader
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="sex != null and sex != ''">sex = #{sex},</if>
+            <if test="readerTypeId != null">reader_type_id = #{readerTypeId},</if>
+            <if test="department != null and department != ''">department = #{department},</if>
+            <if test="phone != null and phone != null">phone = #{phone},</if>
+            <if test="email != null and email != ''">email = #{email},</if>
+            <if test="dateRegister != null">date_register = #{dateRegister},</if>
+            <if test="photo != null">photo = #{photo},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="borrowQuantity != null">borrow_quantity = #{borrowQuantity},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="adminRoles != null">admin_roles = #{adminRoles},</if>
+            <if test="isAvailable != null">is_available = #{isAvailable}</if>
+        </set>
+        where id = #{id}
+    </update>
+    <update id="incrBorrowQuantityById">
+        update reader set borrow_quantity = borrow_quantity + 1 where id = #{id}
+    </update>
+    <update id="updateIsAvailableByIds">
+        update reader
+        set is_available = #{isAvailable}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

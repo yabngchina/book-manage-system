@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yabng.mapper.BorrowMapper">
+    <insert id="save" keyProperty="id" useGeneratedKeys="true">
+        insert into borrow(reader_id, book_id, continue_times, date_out, date_ret_plan, date_ret_act, over_day, over_money, punish_money, has_return, operator_borrow, operator_return)
+        values (#{readerId}, #{bookId}, #{continueTimes}, #{dateOut}, #{dateRetPlan}, #{dateRetAct}, #{overDay}, #{overMoney}, #{punishMoney}, #{hasReturn}, #{operatorBorrow}, #{operatorReturn})
+    </insert>
+    <insert id="saveInBatch">
+        insert into borrow(reader_id, book_id, continue_times, date_out, date_ret_plan, date_ret_act, over_day, over_money, punish_money, has_return, operator_borrow, operator_return)
+        values
+        <foreach collection="borrows" item="borrow" separator=",">
+            (#{borrow.readerId}, #{borrow.bookId}, #{borrow.continueTimes},
+             #{borrow.dateOut}, #{borrow.dateRetPlan}, #{borrow.dateRetAct},
+             #{borrow.overDay}, #{borrow.overMoney}, #{borrow.punishMoney},
+             #{borrow.hasReturn}, #{borrow.operatorBorrow}, #{borrow.operatorReturn})
+        </foreach>
+    </insert>
+    <update id="incrContinueTimesById">
+        update borrow set continue_times = continue_times + 1 where id = #{id}
+    </update>
+    <update id="updateById">
+        update borrow
+        <set>
+            <if test="readerId != null">reader_id = #{readerId},</if>
+            <if test="bookId != null">book_id = #{bookId},</if>
+            <if test="continueTimes != null">continue_times = #{continueTimes},</if>
+            <if test="dateOut != null">date_out = #{dateOut},</if>
+            <if test="dateRetPlan != null">date_ret_plan = #{dateRetPlan},</if>
+            <if test="dateRetAct != null">date_ret_act = #{dateRetAct},</if>
+            <if test="overDay != null">over_day = #{overDay},</if>
+            <if test="overMoney != null">over_money = #{overMoney},</if>
+            <if test="punishMoney != null">punish_money = #{punishMoney},</if>
+            <if test="hasReturn != null">has_return = #{hasReturn},</if>
+            <if test="operatorBorrow != null and operatorBorrow != ''">operator_borrow = #{operatorBorrow},</if>
+            <if test="operatorReturn != null and operatorReturn != ''">operator_return = #{operatorReturn},</if>
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateOverDayAndOverMoneyByIdInBatch">
+        update borrow
+        <set>
+            over_day =
+            <foreach collection="borrows" item="borrow" index="index"
+                     open="case id" close="end">
+                when #{borrow.id} then #{borrow.overDay}
+            </foreach>
+            ,
+            over_money =
+            <foreach collection="borrows" item="borrow" index="index"
+                     open="case id" close="end">
+                when #{borrow.id} then #{borrow.overMoney}
+            </foreach>
+        </set>
+        where id in
+        <foreach collection="borrows" item="borrow" open="(" separator="," close=")">
+            #{borrow.id}
+        </foreach>
+    </update>
+    <update id="updatePunishMoneyById">
+        update borrow set punish_money = #{punishMoney} where id = #{id}
+    </update>
+
+
+    <select id="existBookNotReturn" resultType="java.lang.Boolean">
+        select exists(select 1 from borrow where reader_id = #{readerId} and has_return = false)
+    </select>
+    <select id="getNotReturnByReaderId" resultType="com.yabng.domain.pojo.Borrow">
+        select * from borrow where reader_id = #{readerId} and has_return = false
+    </select>
+    <select id="existBorrowNotReturnAndOverDue" resultType="java.lang.Boolean">
+        select exists(select 1 from borrow
+                               where reader_id = #{readerId}
+                                 and has_return = false
+                                 and CURRENT_TIMESTAMP &gt; date_ret_plan)
+    </select>
+    <select id="getNotReturnByBookId" resultType="com.yabng.domain.pojo.Borrow">
+        select * from borrow where book_id = #{bookId} and has_return = false
+    </select>
+    <select id="getByReaderIdAndBookId" resultType="com.yabng.domain.pojo.Borrow">
+        select * from borrow where reader_id = #{readerId} and book_id = #{bookId}
+    </select>
+    <select id="isBookNotReturn" resultType="java.lang.Boolean">
+        select exists(select 1 from borrow where book_id = #{bookId} and has_return = false)
+    </select>
+    <select id="getOverDueNotReturn" resultType="com.yabng.domain.pojo.Borrow">
+        select * from borrow
+                 where has_return = false and CURRENT_TIMESTAMP &gt; date_ret_plan
+    </select>
+    <select id="getById" resultType="com.yabng.domain.pojo.Borrow">
+        select * from borrow where id = #{id}
+    </select>
+    <select id="selectByReaderId" resultType="com.yabng.domain.pojo.Borrow">
+        select * from borrow where reader_id = #{readerId}
+    </select>
+    <select id="selectAllOverDueNotReturn" resultType="com.yabng.domain.pojo.Borrow">
+        select * from borrow
+        where CURRENT_TIMESTAMP > date_ret_plan and has_return = false
+    </select>
+</mapper>
