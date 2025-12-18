@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { pageQueryReadersService, queryAllReaderTypeService } from '@/api/reader'
-import { queryAllAdminRolesService, updateRoleService } from '@/api/system-admin'
+import {queryAllAdminRolesService, queryAllRolesService, updateRoleService} from '@/api/system-admin'
 
 // 查询条件
 const queryForm = ref({
@@ -112,7 +112,8 @@ const loadOptions = async () => {
   const roleRes = await queryAllAdminRolesService()
   adminRoleOptions.value = roleRes.data || []
 
-  allRoles.value = roleRes.data || []
+  const allRolesResult = await queryAllRolesService()
+  allRoles.value = allRolesResult.data || []
 }
 
 // 获取权限名
