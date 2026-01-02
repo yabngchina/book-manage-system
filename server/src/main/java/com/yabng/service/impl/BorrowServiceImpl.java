@@ -201,9 +201,9 @@ public class BorrowServiceImpl implements BorrowService {
         // 获取读者类型
         ReaderType readerType = readerTypeMapper.getById(reader.getReaderTypeId());
         // 判断续借天数是否大于最大允许天数
-        if (borrowRenewDto.getContinueDays() > readerType.getCanLendDay()) {
-            throw new BaseException("续借天数超出最大允许天数");
-        }
+//        if (borrowRenewDto.getContinueDays() > readerType.getCanLendDay()) {
+//            throw new BaseException("续借天数超出最大允许天数");
+//        }
 
         // 获取借阅记录
         Borrow borrow = borrowMapper.getById(borrowRenewDto.getId());
@@ -218,7 +218,7 @@ public class BorrowServiceImpl implements BorrowService {
 
         // 续借
         borrow.setContinueTimes(borrow.getContinueTimes() + 1);
-        borrow.setDateRetPlan(borrow.getDateRetPlan().plusDays(borrowRenewDto.getContinueDays()));
+        borrow.setDateRetPlan(borrow.getDateRetPlan().plusDays(readerType.getCanLendDay()));
         borrowMapper.updateById(borrow);
         return true;
     }

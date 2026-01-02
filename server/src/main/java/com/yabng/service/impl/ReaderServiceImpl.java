@@ -26,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class ReaderServiceImpl implements ReaderService {
@@ -50,6 +47,10 @@ public class ReaderServiceImpl implements ReaderService {
         Reader reader = readerMapper.getById(UserContext.get());
         if (reader == null) {
             throw new BaseException("用户不存在");
+        }
+        // 判断用户是否一致
+        if (!Objects.equals(reader.getId(), UserContext.get()) && !AdminRoleEnum.SYSTEM_ADMIN.getValue().equals(reader.getAdminRoles())) {
+            throw new BaseException("用户不一致");
         }
         // 校验旧密码
         if (!ObjectUtils.nullSafeEquals(readerUpdatePwdDto.getOldPwd(), reader.getPassword())) {
