@@ -204,6 +204,7 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
+    @Transactional
     public List<ReaderVo> addReaderInBatch(List<ReaderAddDto> readerAddDtoList) {
         List<Reader> readerList = new ArrayList<>(readerAddDtoList.size());
 
