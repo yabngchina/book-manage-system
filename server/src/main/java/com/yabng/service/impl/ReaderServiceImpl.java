@@ -119,8 +119,6 @@ public class ReaderServiceImpl implements ReaderService {
         if (oldReader == null) {
             throw new BaseException("用户不存在");
         }
-        // 查询旧的借阅记录
-        List<Borrow> oldBorrows = borrowMapper.selectByReaderId(id);
 
         // 复制到新的reader里面
         Reader newReader = new Reader();
@@ -131,16 +129,21 @@ public class ReaderServiceImpl implements ReaderService {
         newReader.setStatus(ReaderStatusEnum.VALID.getStatus());
         // 新增
         readerMapper.save(newReader);
-        // 按照新的信息，将旧的借阅记录转移到新的账户上
-        List<Borrow> backupBorrows = oldBorrows
-                .stream()
-                .map(ob -> {
-                    ob.setReaderId(newReader.getId());
-                    return ob;
-                })
-                .toList();
-        // 根据新生成的借阅卡id，保存用户旧的借阅记录
-        borrowMapper.saveInBatch(backupBorrows);
+
+        // 查询旧的借阅记录
+        List<Borrow> oldBorrows = borrowMapper.selectByReaderId(id);
+        if (oldBorrows != null && !oldBorrows.isEmpty()) {
+            // 按照新的信息，将旧的借阅记录转移到新的账户上
+            List<Borrow> backupBorrows = oldBorrows
+                    .stream()
+                    .map(ob -> {
+                        ob.setReaderId(newReader.getId());
+                        return ob;
+                    })
+                    .toList();
+            // 根据新生成的借阅卡id，保存用户旧的借阅记录
+            borrowMapper.saveInBatch(backupBorrows);
+        }
 
         // 注销旧的
         oldReader.setStatus(ReaderStatusEnum.CANCELLED.getStatus());
